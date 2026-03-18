@@ -55,7 +55,6 @@
       preserveDrawingBuffer: true,
       antialias: true,
       alpha: true,
-      //logarithmicDepthBuffer: true,
     });
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = 1;
@@ -247,7 +246,9 @@
       }
 
       three.skin.updateTexture();
+      // Force Scratch's renderer to redraw regardless of which sprite is active
       renderer.dirty = true;
+      renderer.draw();
     }
 
     const canvas = `${renderer.canvas.width}x${renderer.canvas.height}`;
@@ -515,8 +516,6 @@
                   MATRIX: { type: "string", defaultValue: "[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]" },
                 },
               },
-
-              //BatchedMesh maybe? Reporters for all values!
 
               "---",
 
@@ -866,7 +865,6 @@
                   NAME: { type: Scratch.ArgumentType.STRING, defaultValue: "red" },
                 },
               },
-              //Blending modes!
               {
                 opcode: "setMaterialBlending",
                 blockType: Scratch.BlockType.COMMAND,
@@ -886,8 +884,6 @@
                   MATERIAL2: { type: Scratch.ArgumentType.STRING, defaultValue: "blue" },
                 },
               },
-              
-
 
               "---",
 
@@ -1064,7 +1060,7 @@
 
               {blockType: "label",
               text: Scratch.translate("Sensing")},
-                //is there a way to subdivide the bounding box into multiple ones for more precicion?
+
               {
                 opcode: "touching",
                 blockType: Scratch.BlockType.BOOLEAN,
@@ -1334,7 +1330,6 @@
 
                   {text: Scratch.translate("Perspective Camera"), value: "PerspectiveCamera"},
                   {text: Scratch.translate("Orthographic Camera"), value: "OrthographicCamera"},
-                  //{text: Scratch.translate("Cube Camera"), value: "CubeCamera"},
                 ]
               },
               meshProperties: { items: [
@@ -1363,7 +1358,6 @@
                 { text: Scratch.translate("Dodecahedron"), value: "DodecahedronGeometry" },
                 { text: Scratch.translate("Icosahedron"), value: "IcosahedronGeometry" },
                 { text: Scratch.translate("Octahedron"), value: "OctahedronGeometry" },
-                //{ text: Scratch.translate("Plane"), value: "PlaneGeometry" },
                 { text: Scratch.translate("Sphere"), value: "SphereGeometry" },
                 { text: Scratch.translate("Tetrahedron"), value: "TetrahedronGeometry" },
                 { text: Scratch.translate("Torus"), value: "TorusGeometry" },
@@ -1385,14 +1379,10 @@
                 {text: Scratch.translate("Mesh Phong"), value: "MeshPhongMaterial"},
                 {text: Scratch.translate("Mesh Lambert"), value: "MeshLambertMaterial"},
                 {text: Scratch.translate("Mesh Matcap"), value: "MeshMatcapMaterial"},
-
                 {text: Scratch.translate("Line Basic"), value: "LineBasicMaterial"},
                 {text: Scratch.translate("Line Dashed"), value: "LineDashedMaterial"},
-
                 {text: Scratch.translate("Points"), value: "PointsMaterial"},
-
                 {text: Scratch.translate("Sprite"), value: "SpriteMaterial"},
-
                 {text: Scratch.translate("Shadow"), value: "ShadowMaterial"},
               ]},
               materialNumeralProperties: { items: [
@@ -1463,7 +1453,6 @@
                 { text: Scratch.translate("Additive"), value: "2" },
                 { text: Scratch.translate("Subtractive"), value: "3" },
                 { text: Scratch.translate("Multiply"), value: "4" },
-                //{ text: Scratch.translate("Custom"), value: "5" }
               ]},
               textureProperties: { items: [
                 { text: Scratch.translate("Repeat (V2)"), value: "repeat" },
@@ -1480,11 +1469,7 @@
               ]},
               textureMapping: { items: [
                 { text: Scratch.translate("UV (Standard)"), value: "300" },
-                //{ text: Scratch.translate("Cube Reflection (6 images?)"), value: "301" },
-                //{ text: Scratch.translate("Cube Refraction (6 images?)"), value: "302" },
-                //{ text: Scratch.translate("Equirectangular Reflection (no diference)"), value: "303" },
                 { text: Scratch.translate("Equirectangular"), value: "304" },
-                //{ text: Scratch.translate("Cube UV Reflection (errors)"), value: "306" }
               ]},
               magFilter: { items: [
                 { text: Scratch.translate("Linear Filter (Blurred)"), value: "LinearFilter" },
@@ -1528,13 +1513,10 @@
                 { text: Scratch.translate("Background Blurriness"), value: "backgroundBlurriness" },
                 { text: Scratch.translate("Background Intensity"), value: "backgroundIntensity" },
                 { text: Scratch.translate("Background Rotation"), value: "backgroundRotation" },
-
                 { text: Scratch.translate("Environment"), value: "environment" },
                 { text: Scratch.translate("Environment Intensity"), value: "environmentIntensity" },
                 { text: Scratch.translate("Environment Rotation"), value: "environmentRotation" },
-
                 { text: Scratch.translate("Fog"), value: "fog" },
-
                 { text: Scratch.translate("Override Material"), value: "overrideMaterial" }
               ]},
               light: { items: [
@@ -1594,12 +1576,9 @@
                 { text: Scratch.translate("Volume Drop Distance (0.01-x)"), value: "setRefDistance" },
                 { text: Scratch.translate("Max Distance"), value: "setMaxDistance" },
                 { text: Scratch.translate("Fade Factor"), value: "setRolloffFactor" },
-                //{ text: Scratch.translate("Loop start (seconds)"), value: "setLoopStart" },
-                //{ text: Scratch.translate("Loop end (seconds)"), value: "setLoopEnd" },
                 { text: Scratch.translate("Offset"), value: "offset" },
               ]},
               audioBoolean: {items: [
-                //{ text: Scratch.translate("Autoplay"), value: "autoplay" },
                 { text: Scratch.translate("Loop"), value: "setLoop" },
               ]},
               audioPlayback: {items: [
@@ -1630,17 +1609,17 @@
                 const s = runtime.extensionStorage[extensionID] || null;
                 if (!s) {initStorage(); return [["waiting to load..."]];}
                 const m = s.models;
-                if (!m) {s.models = {}; m = {};}
-                if (Object.keys(m).length == 0) return [["Load a model!"]];
-                return Object.keys(m).map(x=>[x]);
+                if (!m) {s.models = {};}
+                if (Object.keys(s.models).length == 0) return [["Load a model!"]];
+                return Object.keys(s.models).map(x=>[x]);
               }}, 
               loadedFonts: {items: () => {
                 const s = runtime.extensionStorage[extensionID] || null;
                 if (!s) {initStorage(); return [["waiting to load..."]];}
                 const m = s.fonts;
-                if (!m) {s.fonts = {}; m = {};}
-                if (Object.keys(m).length == 0) return [["Load a font!"]];
-                return Object.keys(m).map(x=>[x]);
+                if (!m) {s.fonts = {};}
+                if (Object.keys(s.fonts).length == 0) return [["Load a font!"]];
+                return Object.keys(s.fonts).map(x=>[x]);
               }},
             },
 
@@ -1655,23 +1634,13 @@
               this.stopAllAudios();
               scene.children.forEach(
                 o => {
-                  //o.geometry ? o.geometry.dispose() : null;
-                  //o.material ? o.material.dispose() : null;
                   o.removeFromParent();
                 }
               );
-              assets.geometries.forEach(
-                o => o.dispose()
-              );
-              assets.materials.forEach(
-                o => o.dispose()
-              );
-              assets.textures.forEach(
-                o => o.dispose()
-              );
-              assets.renderTargets.forEach(
-                o => o.dispose()
-              );
+              assets.geometries.forEach(o => o.dispose());
+              assets.materials.forEach(o => o.dispose());
+              assets.textures.forEach(o => o.dispose());
+              assets.renderTargets.forEach(o => o.dispose());
               assets.addons.get("orbitControls") ? assets.addons.get("orbitControls").dispose() : null;
 
               assets.objects.clear();
@@ -1694,21 +1663,15 @@
               assets.objects.clear();
               break;
             case "geometries":
-              assets.geometries.forEach(
-                o => o.dispose()
-              );
+              assets.geometries.forEach(o => o.dispose());
               assets.geometries.clear();
               break;
             case "materials":
-              assets.materials.forEach(
-                o => o.dispose()
-              );
+              assets.materials.forEach(o => o.dispose());
               assets.materials.clear();
               break;
             case "textures":
-              assets.textures.forEach(
-                o => o.dispose()
-              );
+              assets.textures.forEach(o => o.dispose());
               assets.textures.clear();
               break;
             case "audios":
@@ -1731,24 +1694,27 @@
         renderer(args) {
           const keys = args.PROPERTY.split(".");
           let current = three.renderer;
-          for (let i = 0; i < keys.length - 1; i++) { current = current[keys[i]];
-          if (!current) return;}
+          for (let i = 0; i < keys.length - 1; i++) {
+            current = current[keys[i]];
+            if (!current) return;
+          }
 
-          if (args.PROPERTY == "autoRender") 
-          {
-            if (JSON.parse(args.VALUE)) loopId = requestAnimationFrame(loop);
-            else {
+          if (args.PROPERTY == "autoRender") {
+            if (JSON.parse(args.VALUE)) {
+              if (!loopId) loopId = requestAnimationFrame(loop);
+            } else {
               cancelAnimationFrame(loopId); 
               loopId = null;
             }
-          } 
-          else current[keys[keys.length - 1]] = JSON.parse(args.VALUE);
+          } else {
+            current[keys[keys.length - 1]] = JSON.parse(args.VALUE);
+          }
         }
         rendererClear(args) {
           three.renderer[args.B]();
         }
         rendererRender(args) {
-          three.renderer.render(scene, camera); //no postprocessing then? idk...
+          three.renderer.render(scene, camera);
           render(true);
         }
         rendererShadow(args) {
@@ -1757,9 +1723,10 @@
         getRenderer(args) {
           const keys = args.PROPERTY.split(".");
           let current = three.renderer;
-          for (let i = 0; i < keys.length - 1; i++) { current = current[keys[i]];
-          if (!current) return;}
-
+          for (let i = 0; i < keys.length - 1; i++) {
+            current = current[keys[i]];
+            if (!current) return;
+          }
           return current[keys[keys.length - 1]];
         }
         color(args) {return args.COLOR;}
@@ -1771,8 +1738,8 @@
             if (args.VALUE == "null" || args.VALUE == "") {
               material = null;
             } else {
-            material = assets.materials.get(args.VALUE);
-            if (!material) {console.warn(`No material named ${args.VALUE}`); return;}
+              material = assets.materials.get(args.VALUE);
+              if (!material) {console.warn(`No material named ${args.VALUE}`); return;}
             }
             scene.overrideMaterial = material;
           }
@@ -1789,7 +1756,6 @@
             }
             scene[args.PROPERTY] = value;
           }
-          
         }
         getScene(args) {
           let value = scene[args.PROPERTY];
@@ -1800,7 +1766,7 @@
         }
         createFog(args) {
           storedFog = new THREE.Fog(args.COLOR, args.NEAR, args.FAR);
-          return "[fog]"; //then the scene block will read for this and set the fog to the storedFog!
+          return "[fog]";
         }
         createFog2(args) {
           storedFog = new THREE.FogExp2(args.COLOR, args.DENSITY);
@@ -1814,12 +1780,12 @@
             case "objects":
               asset.removeFromParent();
               break;
-            default:  asset.dispose();
+            default: asset.dispose();
           }
-           assets[args.TYPE].delete(args.NAME);
+          assets[args.TYPE].delete(args.NAME);
         }
 
-        /*async*/ setTransform(args) {
+        setTransform(args) {
           const obj = assets.objects.get(args.OBJECT);
           if (!obj) {console.warn(`No object named ${args.OBJECT}`); return;}
 
@@ -1828,8 +1794,10 @@
           let v3 = new THREE.Vector3().fromArray(values);
 
           if (args.TRANSFORM == "rotation") {
-            /*await*/ obj.rotation.setFromVector3(v3);
-          } else /*await*/ obj[args.TRANSFORM].copy(v3);
+            obj.rotation.setFromVector3(v3);
+          } else {
+            obj[args.TRANSFORM].copy(v3);
+          }
         }
 
         getTransform(args) {
@@ -1847,12 +1815,12 @@
           return JSON.stringify(v3);
         }
 
-        /*async*/ transformTransform(args) {
+        transformTransform(args) {
           const obj = assets.objects.get(args.OBJECT);
           if (!obj) {console.warn(`No object named ${args.OBJECT}`); return;}
           let v = args.VALUE;
           args.TRANSFORM == "rotation" ? v = THREE.MathUtils.degToRad(v) : null;
-          /*await*/ args.ACTION == "set" ? obj[args.TRANSFORM][args.XYZ] = v : obj[args.TRANSFORM][args.XYZ] += v;
+          args.ACTION == "set" ? obj[args.TRANSFORM][args.XYZ] = v : obj[args.TRANSFORM][args.XYZ] += v;
         }
 
         setRotation(args) {
@@ -2016,11 +1984,14 @@
             case "material":
               let material = args.DATA;
               data = [];
-              try { material = JSON.parse(material);
-              material.forEach(m=>data.push(assets.materials.get(m) || defaultMat));}
-              catch {data = assets.materials.get(material) || defaultMat;}
+              try {
+                material = JSON.parse(material);
+                material.forEach(m=>data.push(assets.materials.get(m) || defaultMat));
+              } catch {
+                data = assets.materials.get(material) || defaultMat;
+              }
               obj.material = data;
-              obj.traverse(o=>o.material = data); //for models, not the best aproach but...
+              obj.traverse(o=>o.material = data);
               break;
             default: obj[args.PROPERTY] = JSON.parse(args.DATA);
           }
@@ -2086,15 +2057,7 @@
 
           let a = geometry.getAttribute(args.PROPERTY);
           if (a) a=a.array; else return null;
-          /* for custom output [0,0,0] [0,0,1] [1,0,1]
-          const result = [];
-          for (let i = 0; i < a.length; i += 3) {
-              result.push([a[i],a[i+1],a[i+2]]);
-          }
-
-          return JSON.stringify(result).replaceAll("],", "] ").slice(1,-1);
-          */
-         return JSON.stringify(Object.values(a));
+          return JSON.stringify(Object.values(a));
         }
 
         createMaterial(args) {
@@ -2127,8 +2090,9 @@
           this.setMaterial(args);
         }
         setMapMaterial(args) {
-          args.DATA = assets.textures.get(args.DATA);
-          if (!args.DATA) {console.warn(`No texture named ${args.DATA}`); return;}
+          const tex = assets.textures.get(args.DATA);
+          if (!tex) {console.warn(`No texture named ${args.DATA}`); return;}
+          args.DATA = tex;
           this.setMaterial(args);
         }
         setMaterialSide(args) {
@@ -2139,17 +2103,6 @@
         setMaterialBlending(args) {
           args.PROPERTY = "blending";
           args.DATA = JSON.parse(args.DATA);
-          this.setMaterial(args);
-        }
-        setMaterialClipping(args) {
-          args.PROPERTY = "side";
-
-            let material = args.DATA;
-            args.DATA = [];
-            try { material = JSON.parse(material);
-            material.forEach(m=>args.DATA.push(assets.objects.get(m) || null));}
-            catch {args.DATA = assets.objects.get(material) || null;}
-            
           this.setMaterial(args);
         }
         joinMaterial(args) {
@@ -2163,8 +2116,11 @@
           return JSON.stringify(m1);
         }
 
-        async loadTexture(args) {
-          const img = vm.editingTarget.getCostumes()[(vm.editingTarget.getCostumeIndexByName(args.COSTUME))].asset.encodeDataURI();
+        // FIX: use util.target instead of vm.editingTarget so the correct
+        // sprite's costumes are used regardless of which sprite is selected.
+        async loadTexture(args, util) {
+          const target = util.target;
+          const img = target.getCostumes()[target.getCostumeIndexByName(args.COSTUME)].asset.encodeDataURI();
           const texture = await three.TextureLoader.loadAsync(img);
           texture.colorSpace = "srgb";
           assets.textures.set(args.NAME, texture);
@@ -2226,24 +2182,23 @@
 
           let r = args.VALUE;
           if (light.isLight) {
-            if (args.PROPERTY == "skyColor") { //hemisphere light needs reinit to set skycolor
-            const light = assets.objects.get(args.NAME);
-            if (!light) {console.warn(`No light named ${args.NAME}`); return;}
+            if (args.PROPERTY == "skyColor") {
+              const light = assets.objects.get(args.NAME);
+              if (!light) {console.warn(`No light named ${args.NAME}`); return;}
 
-            assets.objects.delete(args.NAME);
-            light.removeFromParent();
+              assets.objects.delete(args.NAME);
+              light.removeFromParent();
 
-            const r = new THREE.HemisphereLight(args.VALUE, "#"+light.groundColor.getHexString(), light.intensity);
-            light.dispose();
+              const newLight = new THREE.HemisphereLight(args.VALUE, "#"+light.groundColor.getHexString(), light.intensity);
+              light.dispose();
 
-            assets.objects.set(args.NAME, r);
-            r.name = args.NAME;
-            scene.add(r);
-          } else {
-            //texture? color?
-            args.PROPERTY == "map" ? r = assets.textures.get(args.VALUE) : typeof(r) == "string" && r.at(0) == "#" ? r = new THREE.Color(r) : r = JSON.parse(r);
-            light[args.PROPERTY] = r;
-          }
+              assets.objects.set(args.NAME, newLight);
+              newLight.name = args.NAME;
+              scene.add(newLight);
+            } else {
+              args.PROPERTY == "map" ? r = assets.textures.get(args.VALUE) : typeof(r) == "string" && r.at(0) == "#" ? r = new THREE.Color(r) : r = JSON.parse(r);
+              light[args.PROPERTY] = r;
+            }
           } else console.error(`${args.NAME} is not a light!`);
         }
         setLightColor(args) {this.setLight(args);}
@@ -2304,6 +2259,7 @@
           runtime.extensionStorage[extensionID].models[file.name] = file.url;
           console.log(`File ${file.name} has loaded and has been added!`);
         }
+
         async addModel(args) {
           if (args.NAME == "scene") {console.warn(`Don't name objects "scene"!`); return;}
 
@@ -2315,7 +2271,6 @@
 
           const response = await fetch(url);
           const file = await response.arrayBuffer();
-          console.log(url, response, file);
 
           const group = new THREE.Group();
           group.name = args.NAME;
@@ -2327,30 +2282,21 @@
           scene.add(group);
 
           if (ext == "glb" || ext == "gltf") {
-
             three.GLTFLoad.parse(file, "", (obj) => add(obj));
-
-          }
-          else if (ext == "obj") {
-
+          } else if (ext == "obj") {
             const data = new TextDecoder("utf-8").decode(file);
             add(three.OBJLoad.parse(data));
-
           } else if (ext == "fbx") {
-
             add(three.FBXLoad.parse(file));
-
           }
 
           function add(obj) {
             const model = obj.scene || obj;
-            console.log(obj);
             group.add(model);
             group.traverse(o=>{o.castShadow = true; o.receiveShadow = true;});
-            //material customization support?
           }
-
         }
+
         removeModel(args) {
           confirm(`Are you sure you want to delete ${args.FILE}?`) ? delete runtime.extensionStorage[extensionID].models[args.FILE] : null;
           vm.extensionManager.refreshBlocks();
@@ -2363,12 +2309,15 @@
 
           let material = args.MATERIAL;
           let mat = [];
-              try { material = JSON.parse(material);
-              material.forEach(m=>mat.push(assets.materials.get(m) || defaultMat));}
-              catch {mat = assets.materials.get(material) || defaultMat;}
+          try {
+            material = JSON.parse(material);
+            material.forEach(m=>mat.push(assets.materials.get(m) || defaultMat));
+          } catch {
+            mat = assets.materials.get(material) || defaultMat;
+          }
 
           const i = new THREE.InstancedMesh(g,mat,args.COUNT);
-          i.instanceMatrix.setUsage( THREE.DynamicDrawUsage ); //should add a block to change this?? is it any harm leaving it like this?
+          i.instanceMatrix.setUsage( THREE.DynamicDrawUsage );
           if (assets.objects.get(args.NAME)) {
             console.warn(`Object named ${args.NAME} already exists! Will replace!`);
             assets.objects.get(args.NAME).removeFromParent();
@@ -2402,9 +2351,9 @@
           m.decompose(position, quaternion, scale);
 
           const decomposed = {
-          "position": position,
-          "rotation": quaternion,
-          "scale": scale
+            "position": position,
+            "rotation": quaternion,
+            "scale": scale
           };
           let v3 = decomposed[args.TRANSFORM].toArray();
           args.TRANSFORM == "rotation" ? v3 = new THREE.Euler().setFromQuaternion(quaternion).toArray().slice(0,3).map(r => THREE.MathUtils.radToDeg(r)) : null;
@@ -2423,9 +2372,8 @@
         }
 
         async loadFont() {
-          //get ttf file
           const file = await new Promise((resolve) => {
-          const input = document.createElement("input");
+            const input = document.createElement("input");
             input.type = "file";
             input.accept = ".ttf";
             input.multiple = false;
@@ -2446,126 +2394,92 @@
             };
             fr.readAsArrayBuffer(file[0]);
           });
-          //convert to json
+
           function convertToFaceType(font) {
-/*
-https://github.com/gero3/facetype.js
-//Modified by Civero to match current compatibillity
+            var scale = (1000 * 100) / ( (font.unitsPerEm || 2048) *72);
+            var result = {};
+            result.glyphs = {};
 
-The MIT License (MIT)
-
-Copyright (c) 2016 gero3
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-                                              var scale = (1000 * 100) / ( (font.unitsPerEm || 2048) *72);
-                                              var result = {};
-                                              result.glyphs = {};
-
-                                              for (let i = 0; i < font.glyphs.length; i++) {
-                                                  const glyph = font.glyphs.get(i);
-                                                  const unicodes = [];
-                                                  if (glyph.unicode !== undefined) {
-                                                      unicodes.push(glyph.unicode);
-                                                  }
-                                                  if (glyph.unicodes.length) {
-                                                      glyph.unicodes.forEach(function(unicode){
-                                                          if (unicodes.indexOf (unicode) == -1) {
-                                                              unicodes.push(unicode);
-                                                          }
-                                                      });
-                                                  }
-                                                
-                                                  unicodes.forEach(function(unicode){
-                                                var glyphCharacter = String.fromCharCode (unicode);
-                                                var needToExport = true;
-                                                /*if (restriction.range !== null) {
-                                                  needToExport = (unicode >= restriction.range[0] && unicode <= restriction.range[1]);
-                                                } else if (restriction.set !== null) {
-                                                  needToExport = (restrictCharacterSetInput.value.indexOf (glyphCharacter) != -1);
-                                                }*/
-                                                      if (needToExport) {
-
-                                                  var token = {};
-                                                  token.ha = Math.round(glyph.advanceWidth * scale);
-                                                  token.x_min = Math.round(glyph.xMin * scale);
-                                                  token.x_max = Math.round(glyph.xMax * scale);
-                                                  token.o = "";
-                                                  //if (reverseTypeface.checked) {glyph.path.commands = reverseCommands(glyph.path.commands);}
-                                                  glyph.path.commands.forEach(function(command,i){
-                                                    if (command.type.toLowerCase() === "c") {command.type = "b";}
-                                                    token.o += command.type.toLowerCase();
-                                                    token.o += " ";
-                                                    if (command.x !== undefined && command.y !== undefined){
-                                                      token.o += Math.round(command.x * scale);
-                                                      token.o += " ";
-                                                      token.o += Math.round(command.y * scale);
-                                                      token.o += " ";
-                                                    }
-                                                    if (command.x1 !== undefined && command.y1 !== undefined){
-                                                      token.o += Math.round(command.x1 * scale);
-                                                      token.o += " ";
-                                                      token.o += Math.round(command.y1 * scale);
-                                                      token.o += " ";
-                                                    }
-                                                    if (command.x2 !== undefined && command.y2 !== undefined){
-                                                      token.o += Math.round(command.x2 * scale);
-                                                      token.o += " ";
-                                                      token.o += Math.round(command.y2 * scale);
-                                                      token.o += " ";
-                                                    }
-                                                  });
-                                                  result.glyphs[String.fromCharCode(unicode)] = token;
-                                                }
-                                                  });
-                                              }
-                                              result.familyName = font.familyName;
-                                              result.ascender = Math.round(font.ascender * scale);
-                                              result.descender = Math.round(font.descender * scale);
-                                              result.underlinePosition = Math.round(font.tables.post.underlinePosition * scale);
-                                              result.underlineThickness = Math.round(font.tables.post.underlineThickness * scale);
-                                              result.boundingBox = {
-                                                  "yMin": Math.round(font.tables.head.yMin * scale),
-                                                  "xMin": Math.round(font.tables.head.xMin * scale),
-                                                  "yMax": Math.round(font.tables.head.yMax * scale),
-                                                  "xMax": Math.round(font.tables.head.xMax * scale)
-                                              };
-                                              result.resolution = 1000;
-                                              result.original_font_information = font.tables.name;
-                                              if (font.names.fontSubfamily.en.toLowerCase().indexOf("bold") > -1){
-                                                  result.cssFontWeight = "bold";
-                                              } else {
-                                                  result.cssFontWeight = "normal";
-                                              }
-
-                                              if (font.names.fontSubfamily.en.toLowerCase().indexOf("italic") > -1){
-                                                  result.cssFontStyle = "italic";
-                                              } else {
-                                                  result.cssFontStyle = "normal";
-                                              }
-                                              
-                                              return JSON.stringify(result);
+            for (let i = 0; i < font.glyphs.length; i++) {
+              const glyph = font.glyphs.get(i);
+              const unicodes = [];
+              if (glyph.unicode !== undefined) {
+                unicodes.push(glyph.unicode);
+              }
+              if (glyph.unicodes.length) {
+                glyph.unicodes.forEach(function(unicode){
+                  if (unicodes.indexOf(unicode) == -1) {
+                    unicodes.push(unicode);
+                  }
+                });
+              }
+            
+              unicodes.forEach(function(unicode){
+                var glyphCharacter = String.fromCharCode(unicode);
+                var needToExport = true;
+                if (needToExport) {
+                  var token = {};
+                  token.ha = Math.round(glyph.advanceWidth * scale);
+                  token.x_min = Math.round(glyph.xMin * scale);
+                  token.x_max = Math.round(glyph.xMax * scale);
+                  token.o = "";
+                  glyph.path.commands.forEach(function(command,i){
+                    if (command.type.toLowerCase() === "c") {command.type = "b";}
+                    token.o += command.type.toLowerCase();
+                    token.o += " ";
+                    if (command.x !== undefined && command.y !== undefined){
+                      token.o += Math.round(command.x * scale);
+                      token.o += " ";
+                      token.o += Math.round(command.y * scale);
+                      token.o += " ";
+                    }
+                    if (command.x1 !== undefined && command.y1 !== undefined){
+                      token.o += Math.round(command.x1 * scale);
+                      token.o += " ";
+                      token.o += Math.round(command.y1 * scale);
+                      token.o += " ";
+                    }
+                    if (command.x2 !== undefined && command.y2 !== undefined){
+                      token.o += Math.round(command.x2 * scale);
+                      token.o += " ";
+                      token.o += Math.round(command.y2 * scale);
+                      token.o += " ";
+                    }
+                  });
+                  result.glyphs[String.fromCharCode(unicode)] = token;
+                }
+              });
+            }
+            result.familyName = font.familyName;
+            result.ascender = Math.round(font.ascender * scale);
+            result.descender = Math.round(font.descender * scale);
+            result.underlinePosition = Math.round(font.tables.post.underlinePosition * scale);
+            result.underlineThickness = Math.round(font.tables.post.underlineThickness * scale);
+            result.boundingBox = {
+              "yMin": Math.round(font.tables.head.yMin * scale),
+              "xMin": Math.round(font.tables.head.xMin * scale),
+              "yMax": Math.round(font.tables.head.yMax * scale),
+              "xMax": Math.round(font.tables.head.xMax * scale)
+            };
+            result.resolution = 1000;
+            result.original_font_information = font.tables.name;
+            if (font.names.fontSubfamily.en.toLowerCase().indexOf("bold") > -1){
+              result.cssFontWeight = "bold";
+            } else {
+              result.cssFontWeight = "normal";
+            }
+            if (font.names.fontSubfamily.en.toLowerCase().indexOf("italic") > -1){
+              result.cssFontStyle = "italic";
+            } else {
+              result.cssFontStyle = "normal";
+            }
+            return JSON.stringify(result);
           }
 
           runtime.extensionStorage[extensionID].fonts[file[0].name] = url;
           vm.extensionManager.refreshBlocks();
         }
+
         createTextGeometry(args) {
           const file = JSON.parse(runtime.extensionStorage[extensionID].fonts[args.FILE]);
           if (!file) {console.warn(`No font named ${args.FILE}`); return;}
@@ -2578,12 +2492,15 @@ SOFTWARE.
           geometry.center();
           assets.geometries.set(args.NAME, geometry);
         }
+
         removeFont(args) {
           delete runtime.extensionStorage[extensionID].fonts[args.FILE];
         }
 
-        async loadAudio(args) {
-          const sounds = vm.editingTarget.getSounds();
+        // FIX: use util.target instead of vm.editingTarget
+        async loadAudio(args, util) {
+          const target = util.target;
+          const sounds = target.getSounds();
           const file = sounds[sounds.findIndex(a=>a.name==args.FILE)].asset.data.buffer;
 
           const audioContext = THREE.AudioContext.getContext();
@@ -2616,7 +2533,7 @@ SOFTWARE.
           const sound = assets.objects.get(args.NAME);
           if (!sound) {console.warn(`No sound named ${args.NAME}`); return;}
 
-          if (args.DATA == "offset") { sound.offset = JSON.parse(args.DATA); return;}
+          if (args.PROPERTY == "offset") { sound.offset = JSON.parse(args.DATA); return;}
           args.DATA ? sound[args.PROPERTY](JSON.parse(args.DATA)) : sound[args.PROPERTY]();
         }
         doAudio(args) {this.setAudio(args);}
@@ -2632,7 +2549,8 @@ SOFTWARE.
           const sound = assets.objects.get(args.NAME);
           if (!sound) {console.warn(`No sound named ${args.NAME}`); return;}
 
-          return JSON.stringify(sound[args.PROPERTY]());}
+          return JSON.stringify(sound[args.PROPERTY]());
+        }
         stopAllAudios() {
           assets.objects.forEach(
             a => {if (a.type == "Audio") {a.setLoopEnd(0); a.stop();}}
@@ -2652,7 +2570,7 @@ SOFTWARE.
         raycastCamera(args) {
           const v2 = new THREE.Vector2().fromArray(JSON.parse(args.XY));
           storedRaycast = new THREE.Raycaster();
-          storedRaycast.setFromCamera(v2, camera );
+          storedRaycast.setFromCamera(v2, camera);
         }
         getRaycast(args) {
           const r = storedRaycast.intersectObject( scene );
@@ -2671,11 +2589,11 @@ SOFTWARE.
         renderTarget(args) {
           let rT = assets.renderTargets.get(args.TEXTURE);
           if (rT) {console.warn(`A Render Target named ${args.TEXTURE} already exists. Will replace!`); rT.dispose();}
-            rT = new THREE.WebGLRenderTarget(args.W, args.H, {
-              colorSpace: "srgb",
-              anisotropy: 2,
-            });
-            assets.renderTargets.set(args.TEXTURE, rT);
+          rT = new THREE.WebGLRenderTarget(args.W, args.H, {
+            colorSpace: "srgb",
+            anisotropy: 2,
+          });
+          assets.renderTargets.set(args.TEXTURE, rT);
         }
 
         textureRender(args) {
@@ -2695,13 +2613,11 @@ SOFTWARE.
           camera.updateProjectionMatrix();
 
           if (!assets.textures.get(args.TEXTURE)) {
-            //rT.texture.flipY = false; doesnt work!
-
             rT.texture.wrapT = THREE.RepeatWrapping;
             rT.texture.repeat.y = -1;
             rT.texture.offset.y = 1;
 
-            assets.textures.set(args.TEXTURE,  rT.texture);
+            assets.textures.set(args.TEXTURE, rT.texture);
           }
         }
       
